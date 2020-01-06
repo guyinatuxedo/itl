@@ -1,0 +1,104 @@
+#!/usr/bin/env python3
+
+# For more info, checkout: https://github.com/guyinatuxedo/itl
+
+import os
+import sys
+import stat
+import argparse
+
+# A simple help display function
+def helpFunction():
+    print("\nUsage:\n\nitl -b <binary name> -l <libc name>")
+    exit()
+
+# Get the linker name from version, using naming standard
+def getLdName(libcVersion):
+    return "ld-" + libcVersion + ".so"
+
+# Check if file exists
+def checkBinary(binary):
+    if os.path.exists(binary) == False:
+        print("Does Not Exist: " + binary)
+        helpFunction()
+
+# Function to parse libc version from libc file
+def parseVersion(libc):
+    libcFile = open(libc, 'rb')
+    libcContents = libcFile.read()
+    if b"stable release version" in libcContents:
+        index = libcContents.index(b"stable release version")
+        libcVersion = libcContents[index + 23:index + 27]
+        libcVersion = str(libcVersion, 'utf-8')
+        print("Libc Version: " + libcVersion)
+        libcFile.close()
+        return libcVersion
+    else:
+        print("not a libc file")
+        helpFunction()
+
+# Grab corresponding linker for the libc version
+def getLinker(libcVersion):
+    linkerName = getLdName(libcVersion)
+    linkerFile = open("linkers/" + linkerName, "rb")
+    linkerContents = linkerFile.read()
+    linkerFile.close()
+
+    newLinker = open(linkerName, "wb")
+    newLinker.write(linkerContents)
+    newLinker.close()
+
+    permissions = os.stat(linkerName)
+    os.chmod(linkerName, permissions.st_mode | stat.S_IEXEC)
+
+    return linkerName
+
+# Patch the binary to use the right linker
+def patchBinary(binary, linker):
+    os.system("patchelf --set-interpreter " + os.getcwd() + "/" + linker + " ./" + binary)
+
+# Generate the exploit to ld_preload
+def createExploit(binary, libc):
+    print("Creating Exploit")
+    exploit = open("exploit.py", "w")
+
+    exploit.write("from pwn import *\n\n")
+    exploit.write('target = process("./' + binary + '", env={"LD_PRELOAD":"./' + libc + '"})\n')
+    exploit.write("gdb.attach(target)\n\ntarget.interactive()\n")
+
+    exploit.close()
+
+if __name__ == "__main__":
+
+    # Handle argument parsing
+
+    parser = argparse.ArgumentParser(description = "This tool ilt (Inspire The Liars) is for dealing with ld_preloading a libc file, that you don't have the linker for. It essentially checks to see what libc version you have, grabs the corresponding linker, and patches the binary to use that linker using patchelf. For more info checkout: github.com/guyinatuxedo/itl")
+    parser.add_argument("-b", metavar='-B', type=str, help="The binary you are working with.", default=None)
+    parser.add_argument('-l', metavar='-L', type=str, help="The libc you want to link the binary with.", default=None)
+    parser.add_argument('-e', metavar='-E', type=bool, help="If used, will generate a script 'exploit.py' to handle ld_preloading for you.", nargs='?', const=True, default=False)
+
+    args = parser.parse_args()
+
+    binary = args.b
+    libc = args.l
+    exploit = args.e
+
+    # Check if args are valid
+    if binary == None or libc == None:
+        helpFunction()
+
+    checkBinary(binary)
+    checkBinary(libc)
+
+    # Parse out the libc version
+    libcVersion = parseVersion(libc)
+
+    # Grab the corresponding linker from the libc version
+    linkerName = getLinker(libcVersion)
+
+    # Patch the binary
+    patchBinary(binary, linkerName)
+
+    if exploit == True:
+        # Generate the exploit for ld_preloading
+        createExploit(binary, libc)
