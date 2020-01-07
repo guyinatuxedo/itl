@@ -7,9 +7,13 @@ import sys
 import stat
 import argparse
 
+# The install directory
+installDirectory = "15935728"
+
 # A simple help display function
 def helpFunction():
-    print("\nUsage:\n\nitl -b <binary name> -l <libc name>")
+    print("Usage:\n\nitl -b <binary name> -l <libc name>\n")
+    print("For more info checkout: https://github.com/guyinatuxedo/itl")
     exit()
 
 # Get the linker name from version, using naming standard
@@ -40,7 +44,7 @@ def parseVersion(libc):
 # Grab corresponding linker for the libc version
 def getLinker(libcVersion):
     linkerName = getLdName(libcVersion)
-    linkerFile = open("linkers/" + linkerName, "rb")
+    linkerFile = open(installDirectory + "/linkers/" + linkerName, "rb")
     linkerContents = linkerFile.read()
     linkerFile.close()
 
