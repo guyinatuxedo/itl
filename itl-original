@@ -26,6 +26,16 @@ def checkBinary(binary):
         print("Does Not Exist: " + binary)
         helpFunction()
 
+def checkArch(binary):
+    output = os.popen(binary).read()
+    if "32-bit" in output:
+        return "i386"
+
+    elif "64-bit" in output:
+        return "amd64"
+
+    else:
+        return None
 # Function to parse libc version from libc file
 def parseVersion(libc):
     libcFile = open(libc, 'rb')
@@ -42,9 +52,15 @@ def parseVersion(libc):
         helpFunction()
 
 # Grab corresponding linker for the libc version
-def getLinker(libcVersion):
+def getLinker(libcVersion, arch):
+    archDirectory = None
+    if arch == "i386":
+        archDirectory = "x86"
+    elif arch == "amd64":
+        archDirectory = "x64"
+
     linkerName = getLdName(libcVersion)
-    linkerFile = open(installDirectory + "/linkers/" + linkerName, "rb")
+    linkerFile = open(installDirectory + "/linkers/%s/%s" % (arch, linkerName), "rb")
     linkerContents = linkerFile.read()
     linkerFile.close()
 
@@ -94,11 +110,16 @@ if __name__ == "__main__":
     checkBinary(binary)
     checkBinary(libc)
 
+    arch = checkArch(binary)
+    if arch == None:
+        print("Not supported architecture, supported architectures are x64 and x86 elfs.")
+        sys.exit(0)
+
     # Parse out the libc version
     libcVersion = parseVersion(libc)
 
     # Grab the corresponding linker from the libc version
-    linkerName = getLinker(libcVersion)
+    linkerName = getLinker(libcVersion, arch)
 
     # Patch the binary
     patchBinary(binary, linkerName)
