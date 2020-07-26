@@ -9,7 +9,7 @@ import sys
 import stat
 import argparse
 
-INSTALL_DIRECTORY = "/Hackery/itl"
+INSTALL_DIRECTORY = "15935728"
 
 HELP_DESCRIPTION = "This tool ilt (Inspire The Liars) is for dealing with \
 ld_preloading a libc file, that you don't have the linker for. It \
