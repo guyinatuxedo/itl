@@ -24,22 +24,5 @@ if __name__ == "__main__":
     originalItl.close()
     newItl.close()
 
-    os.system("python3 python-setup.py")
-    '''
-    permissions = os.stat("itl")
-    os.chmod("itl", permissions.st_mode | stat.S_IROTH | stat.S_IXOTH | stat.S_IWOTH)
+    os.system("python3 python-setup.py install")
 
-    newItl = open("itl", "r")
-    toolItl = open("/usr/bin/itl", "w")
-
-    line = newItl.read()
-    while line:
-    	toolItl.write(line)
-    	line = newItl.read()
-
-    newItl.close()
-    toolItl.close()
-
-    permissions = os.stat("/usr/bin/itl")
-    os.chmod("/usr/bin/itl", permissions.st_mode | stat.S_IROTH | stat.S_IXOTH)
-    '''
