@@ -11,7 +11,7 @@ if __name__ == "__main__":
     os.system("sudo apt-get install -y patchelf")
 
     originalItl = open("itl-original", "r")
-    newItl = open("itl", "w")
+    newItl = open("itl/itl.py", "w")
 
     line = originalItl.readline()
     while line:
@@ -24,6 +24,8 @@ if __name__ == "__main__":
     originalItl.close()
     newItl.close()
 
+    os.system("python3 python-setup.py")
+    '''
     permissions = os.stat("itl")
     os.chmod("itl", permissions.st_mode | stat.S_IROTH | stat.S_IXOTH | stat.S_IWOTH)
 
@@ -40,3 +42,4 @@ if __name__ == "__main__":
 
     permissions = os.stat("/usr/bin/itl")
     os.chmod("/usr/bin/itl", permissions.st_mode | stat.S_IROTH | stat.S_IXOTH)
+    '''
